@@ -41,7 +41,7 @@ inline void HMM::release(void)
     output_probs_log = NULL;
 }
 
-bool HMM::checkIndexState(int s)
+bool HMM::checkIndexState(int s) const
 {
     if (s < 0 || num_states <= s) {
         cout << "HMM: index of state is invalid: " << s << endl;
@@ -50,7 +50,7 @@ bool HMM::checkIndexState(int s)
     return true;
 }
 
-bool HMM::checkIndexAlph(int a)
+bool HMM::checkIndexAlph(int a) const
 {
     if (a < 0 || num_alphs <= a) {
         cout << "HMM: index of alph is invalid: " << a << endl;
@@ -75,18 +75,18 @@ void HMM::setNumOfAlphsAndStates(int a, int s)
     num_alphs = a;
     num_states = s;
     alphs = new char[a]();
-    trans_probs = new float *[s];
+    trans_probs = new double *[s];
     for (int i = 0; i < s; ++ i)
-        trans_probs[i] = new float [s]();
-    output_probs = new float *[s];
+        trans_probs[i] = new double [s]();
+    output_probs = new double *[s];
     for (int i = 0; i < s; ++ i)
-        output_probs[i] = new float [a]();
-    trans_probs_log = new float *[s];
+        output_probs[i] = new double [a]();
+    trans_probs_log = new double *[s];
     for (int i = 0; i < s; ++ i)
-        trans_probs_log[i] = new float [s]();
-    output_probs_log = new float *[s];
+        trans_probs_log[i] = new double [s]();
+    output_probs_log = new double *[s];
     for (int i = 0; i < s; ++ i) {
-        output_probs_log[i] = new float [a]();
+        output_probs_log[i] = new double [a]();
         if (0 == i)
             for (int j = 0; j < a; ++ j)
                 output_probs_log[i][j] = -inf;
@@ -98,7 +98,7 @@ void HMM::setAlphs(char *s)
     for (int i = 0; i < num_alphs; ++ i)
         alphs[i] = s[i];
 }
-void HMM::setTransProb(int s1, int s2, float p)
+void HMM::setTransProb(int s1, int s2, double p)
 {
     if (!checkIndexState(s1) || !checkIndexState(s2))
         return;
@@ -106,7 +106,7 @@ void HMM::setTransProb(int s1, int s2, float p)
     trans_probs_log[s1][s2] = log10(p);
 }
 
-void HMM::setOutputProb(int s, int a, float p)
+void HMM::setOutputProb(int s, int a, double p)
 {
     if (!checkIndexState(s) || !checkIndexAlph(a))
         return;
@@ -114,31 +114,31 @@ void HMM::setOutputProb(int s, int a, float p)
     output_probs_log[s][a] = log10(p);
 }
 
-int HMM::numOfAlphs(void)
+int HMM::numOfAlphs(void) const
 {
     return num_alphs;
 }
 
-int HMM::numOfStates(void)
+int HMM::numOfStates(void) const 
 {
     return num_states;
 }
 
-inline char HMM::alph(int n)
+inline char HMM::alph(int n) const
 {
     if (!checkIndexAlph(n))
         return '\0';
     return alphs[n];
 }
 
-inline float HMM::transProb(int f, int t)
+inline double HMM::transProb(int f, int t) const
 {
     if (!checkIndexState(f) || !checkIndexState(t))
         return -1;
     return trans_probs[f][t];
 }
 
-inline float HMM::outputProb(int s, char a)
+inline double HMM::outputProb(int s, char a) const
 {
     if (!checkIndexState(s))
         return -1;
@@ -151,14 +151,14 @@ inline float HMM::outputProb(int s, char a)
     return output_probs[s][i];
 }
 
-float HMM::transProbLog(int f, int t)
+double HMM::transProbLog(int f, int t) const
 {
     if (!checkIndexState(f) || !checkIndexState(t))
         return -1;
     return trans_probs_log[f][t];
 }
 
-float HMM::outputProbLog(int s, char a)
+double HMM::outputProbLog(int s, char a) const
 {
     if (!checkIndexState(s))
         return -1;
@@ -171,7 +171,7 @@ float HMM::outputProbLog(int s, char a)
     return output_probs_log[s][i];
 }
 
-void HMM::disp(void)
+void HMM::disp(void) const
 {
     cout << "alphabets:";
     for (int i = 0; i < num_alphs; ++ i)

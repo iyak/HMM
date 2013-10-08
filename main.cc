@@ -1,4 +1,5 @@
 #include "main.h"
+#define SRCLEN  300
 
 void readPara(HMM &m)
 {
@@ -16,7 +17,7 @@ void readPara(HMM &m)
     para >> s;
     m.setNumOfAlphsAndStates(a, s);
     m.setAlphs(as);
-    float p;
+    double p;
     for (int i = 0; i < s; ++ i) {
         for (int j = 0; j < s; ++ j) {
             para >> p;
@@ -32,14 +33,6 @@ void readPara(HMM &m)
     para.close();
 }
 
-void readFasta(ifstream &f)
-{
-    char file_name_fasta[100] = "";
-    cout << "fasta file name: ";
-    cin >> file_name_fasta;
-    f.open(file_name_fasta);
-}
-
 int getQueryLen(ifstream &f)
 {
     int retval = 0;
@@ -52,96 +45,53 @@ int getQueryLen(ifstream &f)
     return retval;
 }
 
-void viterbi(HMM &m, ifstream &f)
+int fastaNext(ofstream &o, ifstream &f, char *s)
 {
-    int len = getQueryLen(f);
-
-    /* create dp table */
-    vc_t **v;
-    v = new vc_t *[m.numOfStates()];
-    for (int i = 0; i < m.numOfStates(); ++ i)
-        v[i] = new vc_t[len + 1];
-
-    /* initialize dp table */
-    for (int i = 0; i < m.numOfStates(); ++ i)
-        v[i][0].prev = -1;
-    v[0][0].prob = 0;
-    for (int i = 1; i < m.numOfStates(); ++ i)
-        v[i][0].prob = -inf;
-
-    /* fill in dp table */
-    f.seekg(0, f.beg);
-    f.clear();
-    int cur = 1;
-    while (!f.eof()) {
-        char q[FASTA_MAX_LINELEN + 1] = "";
-        f >> q;
-        cout << q;
-        for (int i = 0; '\0' != q[i]; ++ i, ++ cur) {
-            for (int j = 0; j < m.numOfStates(); ++ j) {
-                v[j][cur].prob = -inf;
-                for (int k = 0; k < m.numOfStates(); ++ k) {
-                    float new_prob = v[k][cur - 1].prob + m.transProbLog(k, j) + m.outputProbLog(j, q[i]);
-                    if (v[j][cur].prob < new_prob) {
-                        v[j][cur].prob = new_prob;
-                        v[j][cur].prev = k;
-                    }
-                }
-            }
-        }
+    char c = '>';
+    do
+        if (-1 == (c = f.get()))
+            return 0;
+    while ('\n' == c);
+    if ('>' == c) {
+        string str;
+        f >> str;
+        o << '>' << str << endl;
+    } else
+        f.seekg(-1, f.cur);
+    int count = 0;
+    do {
+        c = f.get();
+        s[count] = c;
+        count += f.gcount();
     }
-
-    /* display viterbi dp table */
-    cout << endl;
-    for (int i = 0; i < m.numOfStates(); ++ i) {
-        for (int j = 0; j < 20; ++ j)
-            cout << fixed << setprecision(3) << v[i][j].prob << "\t";
-        cout << endl;
-    }
-    cout << endl;
-    for (int i = 0; i < m.numOfStates(); ++ i) {
-        for (int j = 0; j < 20; ++ j)
-            cout << v[i][j].prev << "\t";
-        cout << endl;
-    }
-
-    /* termination */
-    cout << cur << endl;
-    int tb_index = 0;
-    int tb_count = len;
-    float max_prob = v[tb_index][tb_count].prob;
-    for (int i = 1; i < m.numOfStates(); ++ i) {
-        if (max_prob < v[i][tb_count].prob) {
-            max_prob = v[i][tb_count].prob;
-            tb_index = i;
-        }
-    }
-
-    /* trace back */
-    ofstream r("result");
-    r.flush();
-    for (; 0 <= tb_count; -- tb_count) {
-        r.seekp(tb_count, r.beg);
-        r << tb_index;
-        tb_index = v[tb_index][tb_count].prev;
-    }
-    r.close();
-
-    cout << endl;
-    f.close();
-    for (int i = 0; i < m.numOfStates(); ++ i) {
-        delete [] v[i];
-    }
-    delete [] v;
+    while ('>' != c && -1 != c);
+    s[count] = '\0';
+    return count;
 }
 
 int main(int argc, char *argv[])
 {
     HMM hmm;
     readPara(hmm);
+
     ifstream fasta;
-    readFasta(fasta);
-    viterbi(hmm, fasta);
-    hmm.disp();
+    ofstream result;
+
+    char file_name_fasta[100] = "";
+    cout << "fasta file name: ";
+    cin >> file_name_fasta;
+
+    fasta.open(file_name_fasta);
+    result.open("result");
+    char src[SRCLEN + 1] = "";
+    int len;
+    while (0 != (len = fastaNext(result, fasta, src))) {
+        char res[len + 1];
+        viterbi(hmm, src, res);
+        result << res << endl;
+    }
+    fasta.close();
+    result.close();
+    // hmm.disp();
     return 0;
 }

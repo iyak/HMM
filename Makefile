@@ -31,6 +31,9 @@ endif
 $(TARGET): touch $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS)
 
+%.o : %.cc
+	$(CC) -c $(CFLAGS) -o $@ $<
+
 .PHONY:touch
 touch:
 ifeq ($(mode),debug)

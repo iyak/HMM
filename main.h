@@ -4,12 +4,7 @@
 #include <string>
 #include <climits>
 #include "hmm.h"
+#include "hmmalgo.h"
 using namespace std;
 
 #define FASTA_MAX_LINELEN 80
-
-typedef struct __viterbi_cell
-{
-    float prob;
-    int prev;
-} vc_t;
