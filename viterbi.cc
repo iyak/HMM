@@ -1,13 +1,4 @@
-#include "hmm.h"
 #include "hmmalgo.h"
-#include <cstring>
-#include <cstdio>
-
-void swap(double *&a, double *&b)
-{
-    double *p;
-    p = a; a = b; b = p;
-}
 
 int viterbi(const HMM &m, const char *s, char *r)
 {

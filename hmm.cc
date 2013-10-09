@@ -131,14 +131,14 @@ inline char HMM::alph(int n) const
     return alphs[n];
 }
 
-inline double HMM::transProb(int f, int t) const
+double HMM::transProb(int f, int t) const
 {
     if (!checkIndexState(f) || !checkIndexState(t))
         return -1;
     return trans_probs[f][t];
 }
 
-inline double HMM::outputProb(int s, char a) const
+double HMM::outputProb(int s, char a) const
 {
     if (!checkIndexState(s))
         return -1;

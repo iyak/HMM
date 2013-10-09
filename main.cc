@@ -33,18 +33,6 @@ void readPara(HMM &m)
     para.close();
 }
 
-int getQueryLen(ifstream &f)
-{
-    int retval = 0;
-    while (!f.eof())
-        if ('\n' != f.get())
-            ++ retval;
-    -- retval;
-    f.seekg(0, f.beg);
-    f.clear();
-    return retval;
-}
-
 int fastaNext(ofstream &o, ifstream &f, char *s)
 {
     char c = '>';
@@ -53,14 +41,20 @@ int fastaNext(ofstream &o, ifstream &f, char *s)
             return 0;
     while ('\n' == c);
     if ('>' == c) {
-        string str;
-        f >> str;
-        o << '>' << str << endl;
+        char l[FASTA_MAX_LINELEN + 1];
+        f.getline(l, FASTA_MAX_LINELEN + 1);
+        o << '>' << l << endl;
     } else
         f.seekg(-1, f.cur);
     int count = 0;
     do {
         c = f.get();
+        if ('>' == c) {
+            f.seekg(-1, f.cur);
+            continue;
+        }
+        if (-1 == c || '\n' == c)
+            continue;
         s[count] = c;
         count += f.gcount();
     }
@@ -89,6 +83,8 @@ int main(int argc, char *argv[])
         char res[len + 1];
         viterbi(hmm, src, res);
         result << res << endl;
+        result << forward(hmm, src) << endl;
+        result << backward(hmm, src) << endl;
     }
     fasta.close();
     result.close();
