@@ -16,6 +16,7 @@ private:
     void release(void);
     bool checkIndexState(int s) const;
     bool checkIndexAlph(int a) const;
+    bool checkProb(double p) const;
 public:
     HMM(void);
     ~HMM(void);

@@ -4,14 +4,15 @@ SRCS := $(wildcard *.cc)
 OBJS = $(SRCS:.cc=.o)
 RM = rm -fv
 DEBUG = -g
+CFLAGS_BASE = -Wall -O3
 
 #Compiler flags
 #if mode variable is empty, setting release build mode
 ifeq ($(mode),debug)
-	CFLAGS = -Wall $(DEBUG)
+	CFLAGS = $(CFLAGS_BASE) $(DEBUG)
 else
 	mode = release
-	CFLAGS = -Wall
+	CFLAGS = $(CFLAGS_BASE)
 endif
 
 .PHONY:all

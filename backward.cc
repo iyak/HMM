@@ -1,8 +1,10 @@
 #include "hmmalgo.h"
 
-double backward(const HMM &m, const char *s)
+double backward(const HMM &m, const char *s, int t)
 {
     const int len = strlen(s);
+    if (len < t)
+        return -inf;
 
     double c1[m.numOfStates()];
     double c2[m.numOfStates()];
@@ -10,7 +12,7 @@ double backward(const HMM &m, const char *s)
         c1[i] = 1;
     double *o = c1;
     double *n = c2;
-    for (int i = len - 1; 0 <= i; -- i) {
+    for (int i = len - 1; t <= i; -- i) {
         for (int j = 0; j < m.numOfStates(); ++ j) {
             n[j] = 0;
             for (int k = 0; k < m.numOfStates(); ++ k)

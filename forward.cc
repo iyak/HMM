@@ -1,8 +1,10 @@
 #include "hmmalgo.h"
 
-double forward(const HMM &m, const char *s)
+double forward(const HMM &m, const char *s, const int t)
 {
     const int len = strlen(s);
+    if (len < t)
+        return -inf;
 
     double c1[m.numOfStates()];
     double c2[m.numOfStates()];
@@ -11,7 +13,7 @@ double forward(const HMM &m, const char *s)
     c1[0] = 0;
     double *o = c1;
     double *n = c2;
-    for (int i = 0; i < len; ++ i) {
+    for (int i = 0; i <= t; ++ i) {
         for (int j = 0; j < m.numOfStates(); ++ j) {
             n[j] = m.outputProbLog(j, s[i]);
             double sum = 0;

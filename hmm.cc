@@ -59,6 +59,15 @@ bool HMM::checkIndexAlph(int a) const
     return true;
 }
 
+bool HMM::checkProb(double p) const
+{
+    if (p < 0 || 1 < p) {
+        cout << "HMM: probability out of range: " << p << endl;
+        return false;
+    }
+    return true;
+}
+
 HMM::~HMM(void)
 {
     release();
@@ -100,7 +109,7 @@ void HMM::setAlphs(char *s)
 }
 void HMM::setTransProb(int s1, int s2, double p)
 {
-    if (!checkIndexState(s1) || !checkIndexState(s2))
+    if (!checkIndexState(s1) || !checkIndexState(s2) || !checkProb(p))
         return;
     trans_probs[s1][s2] = p;
     trans_probs_log[s1][s2] = log10(p);
@@ -108,7 +117,7 @@ void HMM::setTransProb(int s1, int s2, double p)
 
 void HMM::setOutputProb(int s, int a, double p)
 {
-    if (!checkIndexState(s) || !checkIndexAlph(a))
+    if (!checkIndexState(s) || !checkIndexAlph(a) || !checkProb(p))
         return;
     output_probs[s][a] = p;
     output_probs_log[s][a] = log10(p);
@@ -124,7 +133,7 @@ int HMM::numOfStates(void) const
     return num_states;
 }
 
-inline char HMM::alph(int n) const
+char HMM::alph(int n) const
 {
     if (!checkIndexAlph(n))
         return '\0';

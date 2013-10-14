@@ -1,5 +1,5 @@
 #include "main.h"
-#define SRCLEN  300
+#define SRCLEN 500
 
 void readPara(HMM &m)
 {
@@ -83,11 +83,11 @@ int main(int argc, char *argv[])
         char res[len + 1];
         viterbi(hmm, src, res);
         result << res << endl;
-        result << forward(hmm, src) << endl;
-        result << backward(hmm, src) << endl;
+        result << forward(hmm, src, len - 1) << endl;
+        result << backward(hmm, src, 0) << endl;
+        baum_welch(hmm, src, 1);
     }
     fasta.close();
     result.close();
-    // hmm.disp();
     return 0;
 }
