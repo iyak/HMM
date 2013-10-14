@@ -68,6 +68,15 @@ bool HMM::checkProb(double p) const
     return true;
 }
 
+int HMM::checkAlph(char c) const
+{
+    for (int i = 0; i < num_alphs; ++ i)
+        if (alphs[i] == c)
+            return i;
+    cout << "HMM: invalid alphabet: " << c << endl;
+    return -1;
+}
+
 HMM::~HMM(void)
 {
     release();
@@ -152,11 +161,8 @@ double HMM::outputProb(int s, char a) const
     if (!checkIndexState(s))
         return -1;
     int i;
-    for (i = 0; i < num_alphs; ++ i)
-        if (a == alphs[i])
-            break;
-    if (num_alphs == i)
-        return 0;
+    if (-1 == (i = checkAlph(a)))
+        return -1;
     return output_probs[s][i];
 }
 
@@ -172,11 +178,8 @@ double HMM::outputProbLog(int s, char a) const
     if (!checkIndexState(s))
         return -1;
     int i;
-    for (i = 0; i < num_alphs; ++ i)
-        if (a == alphs[i])
-            break;
-    if (num_alphs == i)
-        return 0;
+    if (-1 == (i = checkAlph(a)))
+        return -1;
     return output_probs_log[s][i];
 }
 

@@ -33,7 +33,7 @@ void readPara(HMM &m)
     para.close();
 }
 
-int fastaNext(ofstream &o, ifstream &f, char *s)
+int fastaNext(ofstream &o, ifstream &f, char *s, bool echo_comment)
 {
     char c = '>';
     do
@@ -43,7 +43,8 @@ int fastaNext(ofstream &o, ifstream &f, char *s)
     if ('>' == c) {
         char l[FASTA_MAX_LINELEN + 1];
         f.getline(l, FASTA_MAX_LINELEN + 1);
-        o << '>' << l << endl;
+        if (echo_comment)
+            o << '>' << l << endl;
     } else
         f.seekg(-1, f.cur);
     int count = 0;
@@ -79,14 +80,36 @@ int main(int argc, char *argv[])
     result.open("result");
     char src[SRCLEN + 1] = "";
     int len;
-    while (0 != (len = fastaNext(result, fasta, src))) {
+
+    /* hidden states and likelyhood of query with default HMM */
+    while (0 != (len = fastaNext(result, fasta, src, true))) {
         char res[len + 1];
         viterbi(hmm, src, res);
         result << res << endl;
         result << forward(hmm, src, len - 1) << endl;
-        result << backward(hmm, src, 0) << endl;
-        baum_welch(hmm, src, 1);
     }
+    fasta.clear();
+    fasta.seekg(0, fasta.beg);
+
+    /* baum-welch algorithm */
+    int bwCount = 10000;
+    while (bwCount --) {
+        while (0 != (len = fastaNext(result, fasta, src, false))) {
+            baum_welch(hmm, src);
+        }
+    }
+    result << endl << "baum-welch" << endl;
+    fasta.clear();
+    fasta.seekg(0, fasta.beg);
+
+    /* hidden states and likelyhood of query with new HMM */
+    while (0 != (len = fastaNext(result, fasta, src, true))) {
+        char res[len + 1];
+        viterbi(hmm, src, res);
+        result << res << endl;
+        result << forward(hmm, src, len - 1) << endl;
+    }
+
     fasta.close();
     result.close();
     return 0;

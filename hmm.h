@@ -17,6 +17,7 @@ private:
     bool checkIndexState(int s) const;
     bool checkIndexAlph(int a) const;
     bool checkProb(double p) const;
+    int checkAlph(char c) const;
 public:
     HMM(void);
     ~HMM(void);

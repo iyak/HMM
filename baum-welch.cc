@@ -1,6 +1,6 @@
 #include "hmmalgo.h"
 
-int baum_welch(HMM &m, const char *s, const double lh)
+int baum_welch(HMM &m, const char *s)
 {
     int len = strlen(s);
 
