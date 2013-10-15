@@ -92,15 +92,15 @@ int main(int argc, char *argv[])
     fasta.seekg(0, fasta.beg);
 
     /* baum-welch algorithm */
-    int bwCount = 10000;
+    int bwCount = 1000;
     while (bwCount --) {
         while (0 != (len = fastaNext(result, fasta, src, false))) {
             baum_welch(hmm, src);
         }
+        fasta.clear();
+        fasta.seekg(0, fasta.beg);
     }
     result << endl << "baum-welch" << endl;
-    fasta.clear();
-    fasta.seekg(0, fasta.beg);
 
     /* hidden states and likelyhood of query with new HMM */
     while (0 != (len = fastaNext(result, fasta, src, true))) {
