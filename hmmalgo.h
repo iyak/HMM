@@ -10,3 +10,4 @@ extern int viterbi(const HMM&, const char*, char*);
 extern double forward(const HMM&, const char*, int);
 extern double backward(const HMM&, const char*, int);
 extern int baum_welch(HMM&, const char *);
+extern int baum_welch_scaling(HMM&, const char *);

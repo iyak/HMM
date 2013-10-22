@@ -62,7 +62,7 @@ bool HMM::checkIndexAlph(int a) const
 
 bool HMM::checkProb(double p) const
 {
-    if (p < 0 - DBL_EPSILON || 1 + DBL_EPSILON < p) {
+    if (p < 0 - 2 * DBL_EPSILON || 1 + 2 * DBL_EPSILON < p) {
         cout << "HMM: probability out of range: " << p << endl;
         return false;
     }

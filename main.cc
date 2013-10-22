@@ -64,6 +64,12 @@ int fastaNext(ofstream &o, ifstream &f, char *s, bool echo_comment)
     return count;
 }
 
+void set0(ifstream &f)
+{
+    f.clear();
+    f.seekg(0, f.beg);
+}
+
 int main(int argc, char *argv[])
 {
     HMM hmm;
@@ -88,18 +94,13 @@ int main(int argc, char *argv[])
         result << res << endl;
         result << forward(hmm, src, len - 1) << endl;
     }
-    fasta.clear();
-    fasta.seekg(0, fasta.beg);
+    set0(fasta);
 
     /* baum-welch algorithm */
-    int bwCount = 1000;
-    while (bwCount --) {
-        while (0 != (len = fastaNext(result, fasta, src, false))) {
-            baum_welch(hmm, src);
-        }
-        fasta.clear();
-        fasta.seekg(0, fasta.beg);
-    }
+    int bwCount = 10;
+    for (; bwCount --; set0(fasta))
+        while (0 != (len = fastaNext(result, fasta, src, false)))
+            baum_welch_scaling(hmm, src);
     result << endl << "baum-welch" << endl;
 
     /* hidden states and likelyhood of query with new HMM */

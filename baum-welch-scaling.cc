@@ -1,27 +1,35 @@
 #include "hmmalgo.h"
 
-int baum_welch(HMM &m, const char *s)
+int baum_welch_scaling(HMM &m, const char *s)
 {
     int len = strlen(s);
 
     double f[len + 1][m.numOfStates()];
+    double c[len + 1];
     double b[len + 1][m.numOfStates()];
 
-    /* fill forward dp */
+    /* fill scaled forward dp */
     for (int i = 0; i < m.numOfStates(); ++ i)
         f[0][i] = 0;
-    f[0][0] = 1;
+    f[0][0] = c[0] = 1;
     for (int i = 1; i <= len; ++ i) {
         for (int j = 0; j < m.numOfStates(); ++ j) {
             f[i][j] = 0;
             for (int k = 0; k < m.numOfStates(); ++ k)
-                f[i][j] += f[i - 1][k] * m.transProb(k, j) * m.outputProb(j, s[i - 1]);
+                f[i][j] += f[i - 1][k] * m.transProb(k, j);
+            f[i][j] *= m.outputProb(j, s[i - 1]);
         }
+        c[i] = 0;
+        for (int j = 0; j < m.numOfStates(); ++ j)
+            c[i] += f[i][j];
+        c[i] = 1 / c[i];
+        for (int j = 0; j < m.numOfStates(); ++ j)
+            f[i][j] *= c[i];
     }
 
-    /* fill backward dp */
+    /* fill scaled backward dp */
     for (int i = 0; i < m.numOfStates(); ++ i)
-        b[len][i] = 1;
+        b[len][i] = 1.0 * c[len];
     b[len][0] = 0;
     for (int i = len - 1; 0 <= i; -- i) {
         int j = 0 == i ? 0 : 1;
@@ -30,29 +38,22 @@ int baum_welch(HMM &m, const char *s)
             for (int k = 0; k < m.numOfStates(); ++ k)
                 b[i][j] += b[i + 1][k] * m.transProb(j, k) * m.outputProb(k, s[i]);
         }
+        for (j = 0; j < m.numOfStates(); ++ j)
+            b[i][j] *= c[i];
     }
 
     /* xi value -- prob of transition at time */
     double x[len][m.numOfStates()][m.numOfStates()];
-    for (int i = 0; i < len; ++ i) {
-        double p = 0;
+    for (int i = 0; i < len; ++ i)
         for (int j = 0; j < m.numOfStates(); ++ j)
             for (int k = 0; k < m.numOfStates(); ++ k)
-                p += f[i][j] * m.transProb(j, k) * b[i + 1][k] * m.outputProb(k, s[i]);
-        for (int j = 0; j < m.numOfStates(); ++ j)
-            for (int k = 0; k < m.numOfStates(); ++ k)
-                x[i][j][k] = f[i][j] * m.transProb(j, k) * b[i + 1][k] * m.outputProb(k, s[i]) / p;
-    }
+                x[i][j][k] = f[i][j] * m.transProb(j, k) * b[i + 1][k] * m.outputProb(k, s[i]);
 
     /* gamma value -- prob of state at time */
     double g[len + 1][m.numOfStates()];
-    for (int i = 0; i <= len; ++ i) {
-        double p = 0;
+    for (int i = 0; i <= len; ++ i)
         for (int j = 0; j < m.numOfStates(); ++ j)
-            p += f[i][j] * b[i][j];
-        for (int j = 0; j < m.numOfStates(); ++ j)
-            g[i][j] = f[i][j] * b[i][j] / p;
-    }
+            g[i][j] = f[i][j] * b[i][j] / c[i];
 
     /* update */
     for (int i = 0; i < m.numOfStates(); ++ i) {
@@ -83,3 +84,4 @@ int baum_welch(HMM &m, const char *s)
 
     return 1;
 }
+
