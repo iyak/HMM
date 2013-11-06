@@ -3,17 +3,16 @@
 
 const double inf = 1.0 / 0.0;
 
+template<class T>
 class HMM
 {
 private:
     int num_alphs;
-    char *alphs;
+    vector<T> alphs;
     int num_states;
-    double **trans_probs;
-    double **output_probs;
-    double **trans_probs_log;
-    double **output_probs_log;
-    void release(void);
+    int num_dim;
+    vector< vector<double> > trans_probs;
+    vector< vector< vector<double> > > output_probs;
     bool checkIndexState(int s) const;
     bool checkIndexAlph(int a) const;
     bool checkProb(double p) const;
@@ -23,15 +22,15 @@ public:
     ~HMM(void);
     int numOfAlphs(void) const;
     int numOfStates(void) const;
-    void setNumOfAlphsAndStates(int a, int s);
-    void setAlphs(char *s);
+    void setNumOfAlphs(int a);
+    void setNumOfStates(int s);
+    void setNumOfDim(int d);
+    void setAlphs(vector<T> s);
     void setTransProb(int s1, int s2, double p);
     void setOutputProb(int s, int a, double p);
-    char alph(int n) const;
+    T alph(int n) const;
     double transProb(int f, int t) const;
-    double outputProb(int s, char a) const;
-    double transProbLog(int f, int t) const;
-    double outputProbLog(int s, char a) const;
+    double outputProb(int s, T a) const;
     void disp(void) const;
 };
 

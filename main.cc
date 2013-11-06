@@ -1,21 +1,25 @@
 #include "main.h"
-#define SRCLEN 500
+#include <cstdlib>
+#include <cstring>
+#include <vector>
 
-void readPara(HMM &m)
+void readPara(HMM &m, ProgramOption &po)
 {
     ifstream para;
-    char file_name_para[100] = "";
-    cout <<"para_file_name: ";
-    cin >> file_name_para;
-    para.open(file_name_para);
+    para.open(po.paraFileName);
     
     int a, s;
     para >> a;
-    char as[256];
-    for (int i = 0; i < a; ++ i)
-        para >> as[i];
+    vector<char> as;
+    for (int i = 0; i < a; ++ i) {
+        char c;
+        para >> c;
+        as.push_back(c);
+    }
     para >> s;
-    m.setNumOfAlphsAndStates(a, s);
+    m.setNumOfAlphs(a);
+    m.setNumOfStates(s);
+    m.setNumOfDim(1);
     m.setAlphs(as);
     double p;
     for (int i = 0; i < s; ++ i) {
@@ -33,85 +37,77 @@ void readPara(HMM &m)
     para.close();
 }
 
-int fastaNext(ofstream &o, ifstream &f, char *s, bool echo_comment)
+void parseEqu(const char *s, char *l, char *r)
 {
-    char c = '>';
-    do
-        if (-1 == (c = f.get()))
-            return 0;
-    while ('\n' == c);
-    if ('>' == c) {
-        char l[FASTA_MAX_LINELEN + 1];
-        f.getline(l, FASTA_MAX_LINELEN + 1);
-        if (echo_comment)
-            o << '>' << l << endl;
-    } else
-        f.seekg(-1, f.cur);
-    int count = 0;
-    do {
-        c = f.get();
-        if ('>' == c) {
-            f.seekg(-1, f.cur);
-            continue;
-        }
-        if (-1 == c || '\n' == c)
-            continue;
-        s[count] = c;
-        count += f.gcount();
-    }
-    while ('>' != c && -1 != c);
-    s[count] = '\0';
-    return count;
+    int c = 0, i = 0;
+    for (i = 0; '=' != s[c]; ++ c, ++ i)
+        l[i] = s[c];
+    l[i] = '\0';
+    ++ c;
+    for (i = 0; '\0' != s[c]; ++ c, ++ i)
+        r[i] = s[c];
+    r[i] = '\0';
 }
 
-void set0(ifstream &f)
+void setOption(ProgramOption &po, const int argc, char *argv[])
 {
-    f.clear();
-    f.seekg(0, f.beg);
+    for (int i = 1; i < argc; ++ i) {
+        cout << argv[i] << endl;
+        if ('-' == argv[i][0] && '-' == argv[i][1]) ;
+        else {
+            cerr << "bad usage!" << endl;
+            continue;
+        }
+        char left[STRMAX], right[STRMAX];
+        parseEqu(argv[i] + 2, left, right);
+        if (0 == strcmp("fasta", left)) {
+            if (NONE != po.inputType) {
+                cerr << "file type is ambiguous" << endl;
+                continue;
+            }
+            po.inputType = FASTA;
+            strcpy(po.inputFileName, right);
+            continue;
+        }
+        if (0 == strcmp("bivec", left)) {
+            if (NONE != po.inputType) {
+                cerr << "file type is ambiguous" << endl;
+                continue;
+            }
+            po.inputType = BIVEC;
+            strcpy(po.inputFileName, right);
+            continue;
+        }
+        if (0 == strcmp("para", left)) {
+            strcpy(po.paraFileName, right);
+            continue;
+        }
+    }
 }
 
 int main(int argc, char *argv[])
 {
-    HMM hmm;
-    readPara(hmm);
+    ProgramOption po;
+    setOption(po, argc, argv);
 
-    ifstream fasta;
-    ofstream result;
+    ifstream input;
+    input.open(po.inputFileName);
 
-    char file_name_fasta[100] = "";
-    cout << "fasta file name: ";
-    cin >> file_name_fasta;
-
-    fasta.open(file_name_fasta);
-    result.open("result");
-    char src[SRCLEN + 1] = "";
-    int len;
-
-    /* hidden states and likelyhood of query with default HMM */
-    while (0 != (len = fastaNext(result, fasta, src, true))) {
-        char res[len + 1];
-        viterbi(hmm, src, res);
-        result << res << endl;
-        result << forward(hmm, src, len - 1) << endl;
-    }
-    set0(fasta);
-
-    /* baum-welch algorithm */
-    int bwCount = 10;
-    for (; bwCount --; set0(fasta))
-        while (0 != (len = fastaNext(result, fasta, src, false)))
-            baum_welch_scaling(hmm, src);
-    result << endl << "baum-welch" << endl;
-
-    /* hidden states and likelyhood of query with new HMM */
-    while (0 != (len = fastaNext(result, fasta, src, true))) {
-        char res[len + 1];
-        viterbi(hmm, src, res);
-        result << res << endl;
-        result << forward(hmm, src, len - 1) << endl;
+    switch (po.inputType) {
+        case NONE:
+            cerr << "set input type" << endl;
+            exit(EXIT_FAILURE);
+        case FASTA:
+            HMM<char> hmm;
+            readPara(hmm, po);
+            processFasta(input, hmm, po);
+            break;
+        case BIVEC:
+            HMM<bool> hmm;
+            processBivec(input, hmm, po);
+            break;
     }
 
-    fasta.close();
-    result.close();
+    input.close();
     return 0;
 }

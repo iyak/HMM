@@ -18,8 +18,8 @@ double forward(const HMM &m, const char *s, const int t)
             n[j] = m.outputProbLog(j, s[i]);
             double sum = 0;
             for (int k = 0; k < m.numOfStates(); ++ k)
-                sum += (pow(10, o[k]) * m.transProb(k, j));
-            n[j] += log10(sum);
+                sum += o[k] * m.transProb(k, j);
+            n[j] *= sum;
         }
         swap(o, n);
     }

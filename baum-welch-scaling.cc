@@ -5,7 +5,7 @@ int baum_welch_scaling(HMM &m, const char *s)
     int len = strlen(s);
 
     double f[len + 1][m.numOfStates()];
-    double c[len + 1];
+    double c[len + 1]; /* scaling factor */
     double b[len + 1][m.numOfStates()];
 
     /* fill scaled forward dp */
@@ -24,7 +24,7 @@ int baum_welch_scaling(HMM &m, const char *s)
             c[i] += f[i][j];
         c[i] = 1 / c[i];
         for (int j = 0; j < m.numOfStates(); ++ j)
-            f[i][j] *= c[i];
+            f[i][j] *= c[i]; /* scaling */
     }
 
     /* fill scaled backward dp */
@@ -39,7 +39,7 @@ int baum_welch_scaling(HMM &m, const char *s)
                 b[i][j] += b[i + 1][k] * m.transProb(j, k) * m.outputProb(k, s[i]);
         }
         for (j = 0; j < m.numOfStates(); ++ j)
-            b[i][j] *= c[i];
+            b[i][j] *= c[i]; /* scaling */
     }
 
     /* xi value -- prob of transition at time */

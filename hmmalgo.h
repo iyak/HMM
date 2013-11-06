@@ -6,6 +6,7 @@
 using namespace std;
 
 extern void swap(double*&, double*&);
+extern vector<string> vector(const string&, char, vector<string>);
 extern int viterbi(const HMM&, const char*, char*);
 extern double forward(const HMM&, const char*, int);
 extern double backward(const HMM&, const char*, int);

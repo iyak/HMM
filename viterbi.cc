@@ -22,7 +22,7 @@ int viterbi(const HMM &m, const char *s, char *r)
         for (int j = 0; j < m.numOfStates(); ++ j) {
             n[j] = -inf;
             for (int k = 0; k < m.numOfStates(); ++ k) {
-                double p = o[k] + m.transProbLog(k, j) + m.outputProbLog(j, s[i]);
+                double p = o[k] * m.transProb(k, j) * m.outputProb(j, 1, s[i]);
                 if (n[j] < p) {
                     n[j] = p;
                     v[i][j] = k;

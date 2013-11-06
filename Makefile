@@ -1,55 +1,50 @@
-CC = g++
+CXX = g++
 TARGET = hmm
 SRCS := $(wildcard *.cc)
+HDRS := $(wildcard *.hh)
 OBJS = $(SRCS:.cc=.o)
+DEPS = $(OBJS:.o=.d)
 RM = rm -fv
-DEBUG = -g
-CFLAGS_BASE = -Wall -O3
-
-#Compiler flags
-#if mode variable is empty, setting release build mode
-ifeq ($(mode),debug)
-	CFLAGS = $(CFLAGS_BASE) $(DEBUG)
-else
-	mode = release
-	CFLAGS = $(CFLAGS_BASE)
-endif
+DEBUG = -ggdb
+CXXFLAGS = -O3 -pthread -Wall -Wextra -Wpedantic -MMD
+MODE = release
 
 .PHONY:all
 all: information $(TARGET) 
 
 information:
-ifneq ($(mode),release)
-ifneq ($(mode),debug)
+ifneq ($(MODE),release)
+ifneq ($(MODE),debug)
 	@echo "Invalid build mode." 
-	@echo "Please use 'make mode=release' or 'make mode=debug'"
+	@echo "Please use 'make MODE=release' or 'make MODE=debug'"
 	@exit 1
 endif
 endif
-	@echo "Building $(TARGET) on "$(mode)" mode"
-	@echo ".........................."
+	@echo "Building $(TARGET) on "$(MODE)" MODE"
+	@echo "............................."
 
 $(TARGET): touch $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJS)
 
-%.o : %.cc
-	$(CC) -c $(CFLAGS) -o $@ $<
+%.o:%.cc
+ifeq ($(MODE),release)
+	$(CXX) -c $(CXXFLAGS) -o $@ $<
+else
+	$(CXX) -c $(CXXFLAGS) $(DEBUG) -o $@ $<
+endif
 
 .PHONY:touch
 touch:
-ifeq ($(mode),debug)
-	@touch $(SRCS)
+ifeq ($(MODE),debug)
+	@touch $(SRCS) $(HDRS)
 endif
-
-%.dep:%.c
-	$(SHELL) -c '$(CC) -MM $< > $@'
 
 -include $(DEPS)
 
-.PHONY:d
-d:
-	-@make mode=debug
+.PHONY:debug d
+debug d:
+	-@make MODE=debug
 
-.PHONY:clean
+.PHONY:clean c
 clean c:
-	@$(RM) $(TARGET) $(OBJS) .*.swp .*.swo *~
+	@$(RM) $(TARGET) $(OBJS) $(DEPS) .*.swp .*.swo *~

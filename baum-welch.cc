@@ -1,3 +1,7 @@
+/*
+ * compute likelyhood without neither logarithm enginearing
+ * nore scaling. practical version is baum_welch_scaling.
+ */
 #include "hmmalgo.h"
 
 int baum_welch(HMM &m, const char *s)
