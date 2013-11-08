@@ -11,8 +11,6 @@ private:
     int num_states;
     double **trans_probs;
     double **output_probs;
-    double **trans_probs_log;
-    double **output_probs_log;
     void release(void);
     bool checkIndexState(int s) const;
     bool checkIndexAlph(int a) const;
@@ -30,8 +28,6 @@ public:
     char alph(int n) const;
     double transProb(int f, int t) const;
     double outputProb(int s, char a) const;
-    double transProbLog(int f, int t) const;
-    double outputProbLog(int s, char a) const;
     void disp(void) const;
 };
 

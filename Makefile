@@ -1,55 +1,46 @@
-CC = g++
+CXX = g++
 TARGET = hmm
-SRCS := $(wildcard *.cc)
+SRCS = $(wildcard *.cc)
 OBJS = $(SRCS:.cc=.o)
+DEPS = $(OBJS:.o=.d)
 RM = rm -fv
-DEBUG = -g
-CFLAGS_BASE = -Wall -O3
-
-#Compiler flags
-#if mode variable is empty, setting release build mode
-ifeq ($(mode),debug)
-	CFLAGS = $(CFLAGS_BASE) $(DEBUG)
+CXXFLAGS = -Wall -Wextra -MMD
+MODE = release
+ifeq ($(MODE),debug)
+	CXXFLAGS += -ggdb
 else
-	mode = release
-	CFLAGS = $(CFLAGS_BASE)
+ifeq ($(MODE),profile)
+	CXXFLAGS += -pg
+endif
 endif
 
 .PHONY:all
 all: information $(TARGET) 
 
 information:
-ifneq ($(mode),release)
-ifneq ($(mode),debug)
+ifneq ($(MODE),release)
+ifneq ($(MODE),debug)
+ifneq ($(MODE),profile)
 	@echo "Invalid build mode." 
-	@echo "Please use 'make mode=release' or 'make mode=debug'"
+	@echo "Please use 'make MODE=release' or 'make MODE=debug'"
 	@exit 1
 endif
 endif
-	@echo "Building $(TARGET) on "$(mode)" mode"
-	@echo ".........................."
-
-$(TARGET): touch $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS)
-
-%.o : %.cc
-	$(CC) -c $(CFLAGS) -o $@ $<
-
-.PHONY:touch
-touch:
-ifeq ($(mode),debug)
-	@touch $(SRCS)
 endif
+	@echo "Building $(TARGET) on "$(MODE)" MODE"
+	@echo "............................."
 
-%.dep:%.c
-	$(SHELL) -c '$(CC) -MM $< > $@'
+$(TARGET): $(OBJS) Makefile
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJS)
 
 -include $(DEPS)
+%.o:%.cc Makefile
+	$(CXX) -c $(CXXFLAGS) -o $@ $<
 
-.PHONY:d
-d:
-	-@make mode=debug
-
-.PHONY:clean
+.SILENT:debug profile clean d prof p c
+debug d:
+	$(MAKE) MODE=debug   --always-make --no-print-directory
+profile prof p:
+	$(MAKE) MODE=profile --always-make --no-print-directory
 clean c:
-	@$(RM) $(TARGET) $(OBJS) .*.swp .*.swo *~
+	$(RM) $(TARGET) $(OBJS) $(DEPS) .*.swp .*.swo *~

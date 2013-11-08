@@ -1,3 +1,8 @@
+/*
+ * estimate most likely hidden state sequence with viterbi algorithm.
+ * this is implemented without neither logarithm enginearing
+ * nore scaling. practical version is not implemented yet.
+ */
 #include "hmmalgo.h"
 
 int viterbi(const HMM &m, const char *s, char *r)
@@ -9,8 +14,8 @@ int viterbi(const HMM &m, const char *s, char *r)
     double c1[m.numOfStates()];
     double c2[m.numOfStates()];
     for (int i = 0; i < m.numOfStates(); ++ i)
-        c1[i] = -inf;
-    c1[0] = 0;
+        c1[i] = 0;
+    c1[0] = 1;
     for (int j = 0; j < len; ++ j)
         for (int i = 0; i < m.numOfStates(); ++ i)
             v[j][i] = -1;
@@ -22,7 +27,7 @@ int viterbi(const HMM &m, const char *s, char *r)
         for (int j = 0; j < m.numOfStates(); ++ j) {
             n[j] = -inf;
             for (int k = 0; k < m.numOfStates(); ++ k) {
-                double p = o[k] + m.transProbLog(k, j) + m.outputProbLog(j, s[i]);
+                double p = o[k] * m.transProb(k, j) * m.outputProb(j, s[i]);
                 if (n[j] < p) {
                     n[j] = p;
                     v[i][j] = k;

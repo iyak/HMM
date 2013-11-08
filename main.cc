@@ -33,7 +33,7 @@ void readPara(HMM &m)
     para.close();
 }
 
-int fastaNext(ofstream &o, ifstream &f, char *s, bool echo_comment)
+int fastaNext(ifstream &f, char *s, bool echo_comment)
 {
     char c = '>';
     do
@@ -44,7 +44,7 @@ int fastaNext(ofstream &o, ifstream &f, char *s, bool echo_comment)
         char l[FASTA_MAX_LINELEN + 1];
         f.getline(l, FASTA_MAX_LINELEN + 1);
         if (echo_comment)
-            o << '>' << l << endl;
+            cout << '>' << l << endl;
     } else
         f.seekg(-1, f.cur);
     int count = 0;
@@ -70,7 +70,7 @@ void set0(ifstream &f)
     f.seekg(0, f.beg);
 }
 
-int main(int argc, char *argv[])
+int main(void)
 {
     HMM hmm;
     readPara(hmm);
@@ -83,35 +83,37 @@ int main(int argc, char *argv[])
     cin >> file_name_fasta;
 
     fasta.open(file_name_fasta);
-    result.open("result");
     char src[SRCLEN + 1] = "";
     int len;
 
+    hmm.disp();
+
     /* hidden states and likelyhood of query with default HMM */
-    while (0 != (len = fastaNext(result, fasta, src, true))) {
+    while (0 != (len = fastaNext(fasta, src, true))) {
         char res[len + 1];
         viterbi(hmm, src, res);
-        result << res << endl;
-        result << forward(hmm, src, len - 1) << endl;
+        cout << res << endl;
+        cout << forward(hmm, src, len - 1) << endl;
+        cout << backward(hmm, src, len - 1) << endl;
     }
     set0(fasta);
 
     /* baum-welch algorithm */
     int bwCount = 10;
     for (; bwCount --; set0(fasta))
-        while (0 != (len = fastaNext(result, fasta, src, false)))
+        while (0 != (len = fastaNext(fasta, src, false)))
             baum_welch_scaling(hmm, src);
-    result << endl << "baum-welch" << endl;
+    cout << endl << "baum-welch" << endl;
 
     /* hidden states and likelyhood of query with new HMM */
-    while (0 != (len = fastaNext(result, fasta, src, true))) {
+    while (0 != (len = fastaNext(fasta, src, true))) {
         char res[len + 1];
         viterbi(hmm, src, res);
-        result << res << endl;
-        result << forward(hmm, src, len - 1) << endl;
+        cout << res << endl;
+        cout << forward(hmm, src, len - 1) << endl;
+        cout << backward(hmm, src, len - 1) << endl;
     }
 
     fasta.close();
-    result.close();
     return 0;
 }
