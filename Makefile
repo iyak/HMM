@@ -1,28 +1,25 @@
 CXX = g++
+CXXFLAGS = -Wall -Wextra -MMD
 TARGET = hmm
 SRCS = $(wildcard *.cc)
 OBJS = $(SRCS:.cc=.o)
 DEPS = $(OBJS:.o=.d)
 RM = rm -fv
-CXXFLAGS = -Wall -Wextra -MMD
 MODE = release
 ifeq ($(MODE),debug)
-	CXXFLAGS += -ggdb
-else
+	CXXFLAGS += -ggdb -DNDEBUG
+endif
 ifeq ($(MODE),profile)
-	CXXFLAGS += -pg
-endif
+	CXXFLAGS += -pg -fno-inline-functions-called-once -fno-optimize-sibling-calls
 endif
 
-.PHONY:all
+.PHONY:all information
 all: information $(TARGET) 
-
 information:
 ifneq ($(MODE),release)
 ifneq ($(MODE),debug)
 ifneq ($(MODE),profile)
 	@echo "Invalid build mode." 
-	@echo "Please use 'make MODE=release' or 'make MODE=debug'"
 	@exit 1
 endif
 endif
@@ -31,7 +28,7 @@ endif
 	@echo "............................."
 
 $(TARGET): $(OBJS) Makefile
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJS) -lm
 
 -include $(DEPS)
 %.o:%.cc Makefile
@@ -43,4 +40,4 @@ debug d:
 profile prof p:
 	$(MAKE) MODE=profile --always-make --no-print-directory
 clean c:
-	$(RM) $(TARGET) $(OBJS) $(DEPS) .*.swp .*.swo *~
+	$(RM) $(TARGET) $(OBJS) $(DEPS) gmon.out .*.swp .*.swo *~
